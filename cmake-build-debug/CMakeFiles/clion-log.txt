@@ -1,0 +1,6 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/qiyun/CLionProjects/LLPlayer
+-- operation system is 3.15.3
+-- operation system name is Darwin
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/qiyun/CLionProjects/LLPlayer/cmake-build-debug
