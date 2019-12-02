@@ -6,7 +6,7 @@
 #include <AudioToolbox/AudioFormat.h>
 #include <math.h>
 
-namespace AudioDecoder {
+namespace XQAudioDecoder {
 
     static struct fillComplexBufferInputProc_t {
         AudioBufferList *bufferList;
@@ -15,7 +15,7 @@ namespace AudioDecoder {
     };
 
     static OSStatus LLAudioConverterComplexInputDataProc( AudioConverterRef               inAudioConverter, UInt32 *                        ioNumberDataPackets,
-            AudioBufferList *               ioData, AudioStreamPacketDescription * __nullable * __nullable outDataPacketDescription, void * __nullable               inUserData) {
+                                                          AudioBufferList *               ioData, AudioStreamPacketDescription * __nullable * __nullable outDataPacketDescription, void * __nullable               inUserData) {
 
         struct fillComplexBufferInputProc_t *arg = (struct fillComplexBufferInputProc_t *) inUserData;
         ioData->mBuffers[0].mData           = arg->bufferList->mBuffers[0].mData;
@@ -42,7 +42,8 @@ namespace AudioDecoder {
         basicDescription.mChannelsPerFrame  = 1;
         basicDescription.mBitsPerChannel    = 16;
         basicDescription.mReserved          = 0;
-    }
+        return basicDescription;
+    };
 
 
     AudioStreamBasicDescription InputAACDefaultAudioDescription(int sr, int fp, int channel) {
@@ -54,7 +55,8 @@ namespace AudioDecoder {
         basicDescription.mFramesPerPacket   = 1024;
         basicDescription.mBytesPerPacket    = basicDescription.mBytesPerFrame * basicDescription.mFramesPerPacket;
         basicDescription.mBytesPerFrame     = basicDescription.mBitsPerChannel / 8 * basicDescription.mChannelsPerFrame;
-    }
+        return basicDescription;
+    };
 
 
     auto AudioHardwareDecoder::AudioHardWardWithCreateConverter() -> boolean_t {

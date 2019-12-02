@@ -4,7 +4,7 @@
 
 #include "VideoHardwareDecoder.h"
 
-namespace VideoDecoder {
+namespace XQVideoDecoder {
 
     // 构造函数
     VideoHardwareDecoder::VideoHardwareDecoder(int width, int height) {
@@ -27,8 +27,8 @@ namespace VideoDecoder {
 
     // Create video format description and decode parameters
     auto VideoFormatDescriptionForDecodeParameters(VideoDecoderType type, std::string sps, std::string pps, std::string vps) -> CMFormatDescriptionRef {
-        OSStatus status;
-        CMFormatDescriptionRef formatDescription;
+        OSStatus status = 0;
+        CMFormatDescriptionRef formatDescription = nullptr;
 
         // Set sps/ps information, decoder to use parse header for packet
         const uint8_t * parameterSetPointers[3] = {
@@ -111,21 +111,23 @@ namespace VideoDecoder {
                     CMTime presentationDuration ) {
 
                 printf("解码成功 ...\n" );
-                if (VideoDecoderHandler) {
+                if (this->mediaDecoder->decode_video_frame_callback) {
                     CVPixelBufferLockBaseAddress(imageBuffer, 0);
                     size_t bytesPerRow      = CVPixelBufferGetBytesPerRow(imageBuffer);
                     size_t height           = CVPixelBufferGetHeight(imageBuffer);
+                    size_t width            = CVPixelBufferGetWidth(imageBuffer);
                     u_int8_t *baseAddress   = (u_int8_t *)malloc(bytesPerRow * height);
                     memcpy(baseAddress, CVPixelBufferGetBaseAddress(imageBuffer), bytesPerRow * height);
                     CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
                     // Output decoded data to callback func
-                    VideoDecoderHandler(baseAddress, bytesPerRow * height, 0);
+                    this->mediaDecoder->decode_video_frame_callback(baseAddress, (int)(bytesPerRow * height), (int)width, (int)height);
                     free(baseAddress);
                 }
             };
             // Starting decode， and add callback notify
             VTDecompressionSessionDecodeFrameWithOutputHandler(decompressionSession, *sampleBuffer, decodeFrameFlags, NULL, decompressionOutputHandler);
         }
+        return true;
     }
 
 
@@ -159,8 +161,8 @@ namespace VideoDecoder {
         av_bsf_alloc(absf, &bsfcCtx);
         avcodec_parameters_copy()
         */
-        int sps_start_idx, sps_size;
-        int pps_start_idx, pps_size;
+        int sps_start_idx = 0, sps_size = 0;
+        int pps_start_idx = 0, pps_size = 0;
 
         uint8_t  *extradata = codecContext->extradata;
         for (int i = 0; i < codecContext->extradata_size; i ++) {

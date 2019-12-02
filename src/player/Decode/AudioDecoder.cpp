@@ -30,6 +30,12 @@ AudioDecoder::~AudioDecoder() {
 }
 
 
+// 计算每帧音频时长
+// audio_number ++;
+// float duration = 1000.0 * (double)ret / 44100.0;
+// double ts = duration * audio_number / 1000.0;  // ms -> s
+// this->a_duration = duration;
+
 // TS
 static struct timeval _timeval;
 void *AudioDecoder::AudioQueue_Read_Thread(void *ptr) {
@@ -59,33 +65,46 @@ void *AudioDecoder::AudioQueue_Read_Thread(void *ptr) {
             continue;
         }
 
+
+        uint8_t  *data;
+        int size;
+
+        // 当前时间戳
+        gettimeofday(&_timeval, NULL);
+        double ts = _timeval.tv_sec * 1000 + _timeval.tv_usec / 1000;
+
         // 队列存在数据时
         if (packet_count > 0) {
-            gettimeofday(&_timeval, NULL);
-            double ts = _timeval.tv_sec * 1000 + _timeval.tv_usec / 1000;
-            //printf("时间戳  %.5f \n", ts);
-
-            uint8_t  *data;
-            int size;
-            double pts;
-
+            // 当前音频队列第一帧的pts, ms
+            double pts = decoder->packet_queue->xq_first_pts(AVMEDIA_TYPE_AUDIO) * 1000;
             // 音频首包进行缓存
             if (decoder->audioDecoder->pre_pts <= 0) {
-                decoder->audioDecoder->pre_pts = ts;
-                decoder->packet_queue->xq_queue_out((void **) &data, &size, &pts, AVMEDIA_TYPE_AUDIO);
-                //printf("* * * * * * * * * * * * * * * * * *  音频播放数据，缓存个数 = %d , pts = %.5f\n", packet_count, pts);
-                continue;
+                // 确保视频第一帧已经加入队列后，开始播放音频
+                if (decoder->packet_queue->xq_queue_count(AVMEDIA_TYPE_VIDEO) <= 0) {
+                    continue;
+                }
+                decoder->audioDecoder->pre_pts = pts;
+                decoder->audioDecoder->timestamp = ts;
+                // 抛出队列中第一个数据
+                decoder->packet_queue->xq_queue_out((void **) &data, &size, AVMEDIA_TYPE_AUDIO);
+                printf("* * * * * * * * * * * * * * * * * * 第一次 音频播放数据，缓存个数 = %d , pts = %.5f\n", packet_count, pts);
             }
 
             // 两帧之间间隔大于时长
-            double interval = ts - (decoder->audioDecoder->pre_pts);
-            if (interval >= decoder->a_duration ) {
-                decoder->packet_queue->xq_queue_out((void **) &data, &size, &pts, AVMEDIA_TYPE_AUDIO);
-                decoder->audioDecoder->pre_pts = ts;
-                printf("* * * * * * * * * * * * * * * * * *  音频播放数据，缓存个数 = %d , pts = %.5f\n", packet_count, pts);
+            double interval = ts - (decoder->audioDecoder->timestamp + decoder->a_duration);
+            if (interval > 0) {
+                printf(" 当前 ========================== ========================== ==========================   %f  秒\n", ts / 1000);
+                decoder->packet_queue->xq_queue_out((void **) &data, &size, AVMEDIA_TYPE_AUDIO);
+                decoder->audioDecoder->pre_pts = pts;
+                decoder->audioDecoder->timestamp = ts;
+                printf("* * * * * * * * * * * * * * * * * *延时多少  %.5f  毫秒,  音频播放数据，缓存个数 = %d , pts = %.5f\n", fabs(interval), packet_count, pts);
             } else {
-                printf("音频延时    延时多少  %.5f  毫秒 ....\n", (decoder->a_duration - interval));
-                av_usleep((decoder->a_duration - interval) * 1000);
+                printf("音频延时    延时多少  %.5f  毫秒 ....\n", fabs(interval));
+                av_usleep(fabs(interval) * 1000);
+
+                decoder->packet_queue->xq_queue_out((void **) &data, &size, AVMEDIA_TYPE_AUDIO);
+                decoder->audioDecoder->pre_pts = pts;
+                decoder->audioDecoder->timestamp = ts;
             }
         }
     }

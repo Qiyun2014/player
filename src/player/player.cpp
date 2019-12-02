@@ -46,15 +46,29 @@ namespace player {
             // AV_PIX_FMT_YUV420P,   ///< planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
             glRender->DisplayVideoToWindow(GL_MEDIA_TYPE_YUV420p, data, size, width, height);
         }
+
+#ifdef _WIN32
+        /* Windows specific API calls are here */
+#elif __linux__
+        /* Linux specific API calls are here */
+#elif __APPLE__
+#ifdef TARGET_OS_MAC
+        /* Mac OS specific API calls are here */
+#elif TARGET_OS_IPHONE
+        /* iPhone specific API calls are here */
+#else
+#endif
+
+#endif
     }
 
 
     auto playerClass::open_file(std::string path) -> int {
         avformat_network_init();
+        av_register_all();
         auto *parse = new stream_parse::stream_parse_class();
 
         // Init decoder and set default params
-        AVCodec *video_codec, *audio_codec;
         fmt_context = avformat_alloc_context();
         fmt_context->probesize = 1024 * 1024;
         fmt_context->max_analyze_duration = 5 * AV_TIME_BASE;
@@ -73,15 +87,14 @@ namespace player {
 
         // Get media info
         parse->parse_stream_info(fmt_context, &video_stream_index, &duration,&frame_rate, &width, &height);
-        // render class
-        if (glRender == NULL) {
-            glRender = new XQRender::GLRender(width, height);
-        }
-
         // Start decoder
-        if (video_codec || audio_codec) {
-            XQMediaDecoder media_decoder = { .fmt_ctx = fmt_context, .audio_index = audio_stream_index,
-                    .video_index = video_stream_index, .decode_frame = decode_frame_callback, .decode_video_frame_callback = decode_frame_callback2
+        if (width || height) {
+            XQMediaDecoder media_decoder = {
+                    .fmt_ctx = fmt_context,
+                    .audio_index = audio_stream_index,
+                    .video_index = video_stream_index,
+                    .decode_frame = decode_frame_callback,
+                    .decode_video_frame_callback = decode_frame_callback2
             };
             if (mDecoder == NULL) {
                 mDecoder = new MediaDecoder(media_decoder);
@@ -101,9 +114,9 @@ namespace player {
         double v_pts = v_rational.den/v_rational.num;
 
         av_seek_frame(fmt_context,
-                video_stream_index,
-                v_pts * ((double)position / (double)1000) * AV_TIME_BASE + (double)fmt_context->start_time / (double) AV_TIME_BASE * v_pts,
-                AVSEEK_FLAG_ANY);
+                      video_stream_index,
+                      v_pts * ((double)position / (double)1000) * AV_TIME_BASE + (double)fmt_context->start_time / (double) AV_TIME_BASE * v_pts,
+                      AVSEEK_FLAG_ANY);
 
         AVCodec *v_codec = avcodec_find_decoder(fmt_context->streams[video_stream_index]->codecpar->codec_id);
         AVCodecContext *video_codec_ctx = avcodec_alloc_context3(v_codec);

@@ -113,7 +113,7 @@ XQQueuePacket *xq_packet_queue::xq_last_queue(AVMediaType type) {
 }
 
 
-int xq_packet_queue::xq_queue_out(void **out_data, int *out_size, double *pts, AVMediaType type) {
+int xq_packet_queue::xq_queue_out(void **out_data, int *out_size, AVMediaType type) {
     if (get_queue_packet(type) == nullptr){
         return 0;
     }
@@ -122,7 +122,6 @@ int xq_packet_queue::xq_queue_out(void **out_data, int *out_size, double *pts, A
     XQPacket *packet = queue_packet->packet;
     *out_data = packet->data;
     *out_size = packet->size;
-    *pts = packet->pts;
 
     av_free(get_queue_packet(type)->packet);
     if (type == AVMEDIA_TYPE_VIDEO) {

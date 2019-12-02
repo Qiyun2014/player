@@ -14,7 +14,7 @@ public:
     ~AudioDecoder();
 
     double pre_pts = 0;
-    double now_pts = 0;
+    double timestamp = 0;
     double duration = 0;
 
     // 读取音频帧

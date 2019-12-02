@@ -39,7 +39,7 @@ private:
 
 #if LL_TARGET_MACOS_AND_IOS
     // iOS VideoToolBox 硬解码
-        VideoDecoder::VideoHardwareDecoder *hardwareDecoder;
+        //XQVideoDecoder::VideoHardwareDecoder *hardwareDecoder;
 #endif
 };
 

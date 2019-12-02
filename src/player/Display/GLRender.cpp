@@ -25,8 +25,7 @@ namespace XQRender {
     auto GLRender::DisplayToWindow(GL_MEDIA_TYPE mediaType, uint8_t *image_buffer[GL_NUM_DATA_POINTERS], int size[GL_NUM_DATA_POINTERS]) -> void {
 
         switch (mediaType) {
-            case GL_MEDIA_TYPE_YUV420p:
-            {
+            case GL_MEDIA_TYPE_YUV420p: {
                 int num_of_pixel = display_size.width * display_size.height;
                 uint8_t *yuv_buffer = (uint8_t *) malloc(sizeof(uint8_t) * num_of_pixel * 1.5);
                 memcpy(yuv_buffer, image_buffer[0], num_of_pixel);
@@ -39,8 +38,7 @@ namespace XQRender {
                 free(yuv_buffer);
                 break;
             }
-            default:
-            {
+            default: {
                 printf("Unsupport format ...");
             }
         }
@@ -54,15 +52,13 @@ namespace XQRender {
 
     void GLRender::DisplayVideoToWindow(GL_MEDIA_TYPE mediaType, uint8_t *data, int size, int width, int height) {
         switch (mediaType) {
-            case GL_MEDIA_TYPE_YUV420p:
-            {
+            case GL_MEDIA_TYPE_YUV420p: {
                 cv::Mat input(height * 1.5, width, CV_8UC1, data);
                 mat_dst = cv::Mat(height, width, CV_8UC3);
                 cv::cvtColor(input, mat_dst, cv::COLOR_YUV420p2RGB);
                 break;
             }
-            default:
-            {
+            default: {
             }
         }
 

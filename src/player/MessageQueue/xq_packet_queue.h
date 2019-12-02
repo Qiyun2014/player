@@ -39,7 +39,7 @@ public:
     int xq_queue_put(void *data, int size, double pts, AVMediaType type);
 
     // Read first packet
-    int xq_queue_out(void **out_data, int *out_size, double *pts, AVMediaType type);
+    int xq_queue_out(void **out_data, int *out_size, AVMediaType type);
 
     // Number of count
     int xq_queue_count(XQQueuePacket *head_packet);

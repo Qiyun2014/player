@@ -12,9 +12,9 @@
 #include <pthread.h>
 #include "../VideoDecoder.h"
 
-namespace VideoDecoder {
+namespace XQVideoDecoder {
 
-    class VideoHardwareDecoder : public VideoDecoderManager::VideoDecoder {
+    class VideoHardwareDecoder : public VideoDecoder {
         VideoHardwareDecoder(int width, int height);
         ~VideoHardwareDecoder();
 

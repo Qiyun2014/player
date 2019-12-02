@@ -8,9 +8,9 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include "../AudioDecoder.h"
 
-namespace AudioDecoder {
+namespace XQAudioDecoder {
 
-    class AudioHardwareDecoder : AudioDecoderManager::AudioDecoder {
+    class AudioHardwareDecoder : AudioDecoder {
         AudioHardwareDecoder(int sampleRate, int framePerPacket, int channel);
         ~AudioHardwareDecoder();
 
